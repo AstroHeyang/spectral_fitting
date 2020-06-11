@@ -1,0 +1,40 @@
+%---------------------------------Readme---------------------------------------
+% This is the default parameter file for IDL procedure cli_vdispfit,  which  is
+% specially developped for modelling stellar spectra of galaxies in  first data
+% release of Sloan Digital Sky Survey (SDSS DR1, Abazajian et al. 2003). A more
+% detailed description of this approach could be found in Li et al. 2003.
+%
+% A blank line or a line with the first character of "%" will be ignored by the
+% IDL procedure, so that you can conveniently use a "%"  to mask a line  or  to
+% take notes.
+%
+% A line specifies one parameter,  the sequence  of the values in a line should
+% be as follows: name of parameter, value, ...  Note that  the strings  in each
+% line must be sepearted by Tab keys.  Also  note that in  each line  only  the
+% first two strings are evaluable, and the others will be ignored.
+%
+% Note that if a parameter is specified multiple times,  the last one  will  be
+% used.
+%
+% If a parameter is not set in this file,  the value  in  the default parameter
+% file is used.
+%
+%-------------------------------Parameters-------------------------------------
+
+% number of Gaussians adopted for [OIII]; default 1, at most 3
+OIII_5007		2
+
+% number of Gaussians adopted for broad Halpha; default 2, at most 5
+bl_Halpha_6563		3
+
+% number of Gaussians adopted for broad Hbeta; default 2, at most 5
+bl_Hbeta_4861		3
+
+% output_dir; default './output'
+output_dir './output'
+
+% FeII model file; default 'VJV04_narrow_broad_FeII_data.fits.gz'
+FeII_file 'VJV04_narrow_broad_FeII_data.fits.gz'
+
+% using Lorentz model for broad lines or not; 1 or 0
+lorentz			1
