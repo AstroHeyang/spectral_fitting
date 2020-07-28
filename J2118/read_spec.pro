@@ -80,7 +80,7 @@ function read_spec, spec_file, spec_z, ra, dec, sdss=sdss
   
   ; correct the Galactic extinction
   glactc, spec_ra, spec_dec, 2000, gal_l, gal_b, 1, /degree
-  gal_ebv = 0.86*dust_getval(gal_l, gal_b, ipath='../qso_fit/SFD/maps/',/interp)
+  gal_ebv = 0.86 * dust_getval(gal_l, gal_b, ipath='../qso_fit/SFD/maps/', /interp)
   ; Schlegel et al. 1998， Schlafly & Finkbeiner 2011
   print, 'Galactic E(B-V): ', gal_ebv, 'mag', format='(A18, D10.5, A4)'
   obs_wave = spec_wave

@@ -5,26 +5,32 @@
 ; AUTHOR:
 ;   He-Yang Liu
 ;   My Github homepage:
-;       https://github.com/AstroHeyang
+;     https://github.com/AstroHeyang
 ;
 ; PURPOSE:
-;   Read the spectrum and then return wave and flux after correction (both deredden and redshift) 
+;   Fit the spectrum using mpfit. 
 ;
 ; CALLING SEQUENCE:
-;   spec = spec_fit(spec_file, z, ra, dec) 
+;   spec_fit, index_fit, hb_func=hb_func, [o3_func = o3_func, outfile=outfile,$
+;     nlfixed=nlfixed, blfixed=blfixed, \sdss]) 
 ;
 ; DESCRIPTION:
-;   The power-law model is used to represent the AGN continuum.
-;
-; INPUT:
-;   spec_file - ISIS spectrum
-;
-;
-; KEYWORD PARAMETERS:
 ;   NULL
 ;
+; INPUT:
+;   index_fit - fitting region, e.g., 4700-5100 A
+;   hb_func - model to fit hbeta region, e.g., 2gauss, 3gauss or 1gauss+1lorentz
+;
+; KEYWORD PARAMETERS:
+;   o3_func - model to fit [OIII], the default is 1 gauss
+;   outfile - output file name
+;   nlfixed - narrow line fixed to a specific value, e.g., 500 km/s
+;   blfixed - broad line fixed to a specific value, e.g., 1200 km/s
+;   sdss - sdss spectrum or not 
+;
 ; OUTPUT:
-;	struct, {wave, flux, flux_error, z, ra, dec} 
+;	A fits file, {wave, flux, error, ra, dec, z, model_x, model_y, chisq, $
+;   reduced_chisq, pl, Hb4861_N, Hb4861_B, OIII4959, OIII5007}
 ;-
 
 function powerlaw, x, p
@@ -253,6 +259,7 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
       'P['+ $
       strcompress(string(index_oiii5007+4), /remove_all)+ $
       ']'
+
   	info_P[index_oiii4959+5].tied   =   $
       '1./3. * P['+ $
       strcompress(string(index_oiii5007+5), /remove_all)+ $
@@ -319,7 +326,7 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
     output.Hb4861_N[2*i+1] = perror[index_hb + i]
     output.Hb4861_B[2*i] =   params[index_hb + 3 +i]
     output.Hb4861_B[2*i+1] = perror[index_hb + 3 + i]
-  
+    
     if hb_func eq '3g' then begin
       output.Hb4861_B[2*(3+i)] =   params[index_hb + 6 +i]
       output.Hb4861_B[2*(3+i)+1] = perror[index_hb + 6 + i]
@@ -332,9 +339,9 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
     
     if o3_func eq '2g' then begin
       output.OIII4959[2*(3+i)]	= params[index_oiii4959 + i + 6]
-      output.OIII4959[2*(3+i)+1]	= perror[index_oiii4959 + i + 6]
+      output.OIII4959[2*(3+i)+1]= perror[index_oiii4959 + i + 6]
       output.OIII5007[2*(3+i)]	= params[index_oiii5007 + i + 6]
-      output.OIII5007[2*(3+i)+1]	= perror[index_oiii5007 + i + 6]
+      output.OIII5007[2*(3+i)+1]= perror[index_oiii5007 + i + 6]
     endif
   endfor
   
