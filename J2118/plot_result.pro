@@ -11,7 +11,7 @@
 ;   Illustrate the fitting results
 ;
 ; CALLING SEQUENCE:
-;   plot_result, linefit_file, index_fit, hb_func, filename=filename, [\sdss]
+;   plot_result, linefit_file, index_fit, hb_func, filename=filename, [\sdss, nlfixed=nlfixed, blfixed=blfixed]
 ;
 ; DESCRIPTION:
 ;   plot the fitting results 
@@ -19,8 +19,10 @@
 ; INPUT:
 ;   linefit_file - fitting result file
 ;   index_fit - fitting region
-;   hb_func - hbeta model, e.g., 2gauss
 ;   filename - ps file name
+;   hb_func - hbeta model, e.g., 2gauss
+;   nlfixed - narrow line fixed to a specific value, e.g., 500 km/s
+;   blfixed - broad line fixed to a specific value, e.g., 1200 km/s
 ;
 ; KEYWORD PARAMETERS:
 ;   sdss - sdss spectrum or not
@@ -41,7 +43,8 @@ function powerlaw, x, p
   return,y
 end
 
-PRO plot_result, linefit_file, index_fit=index_fit, filename=filename, hb_func=hb_func, sdss=sdss
+PRO plot_result, linefit_file, index_fit=index_fit, hb_func=hb_func, filename=filename, sdss=sdss, $
+  nlfixed=nlfixed, blfixed=blfixed
 
   entry_device = !d.name
   set_plot,'PS'
@@ -69,8 +72,9 @@ PRO plot_result, linefit_file, index_fit=index_fit, filename=filename, hb_func=h
   x_range = [4750,5050]
   x_index = where(wave gt x_range[0] and wave lt x_range[1])
   y_range = [-1, 1.1*max(flux[x_index])]
-  image_title = textoidl('J2118-Hbeta-' + hb_func) 
-  
+  ; TODO: correct image title
+  ;image_title = textoidl(strmid(filename, 0, strpos(filename, '.ps')))
+
   plot, wave, flux, xr=x_range, yr=y_range, xs=1, ys=1,  title=image_title,$
     color=fsc_color('black'), xthick=2.0, ythick=2.0, charthick=1.8, $
     charsize=1.5, position=p1, xtickformat='(A1)'
@@ -119,6 +123,8 @@ PRO plot_result, linefit_file, index_fit=index_fit, filename=filename, hb_func=h
   
   	index_hb4861b = where(hb4861b ge 0.5*max(hb4861b))
     fwhm_bhb = ( max( wave_fwhm(index_hb4861b)  ) - min( wave_fwhm(index_hb4861b) ) )*3d5/4862.68
+    fwhm_bhb1 = 2.354 * spec.hb4861_b[2] * 3d5
+    fwhm_bhb2 = 2.354 * spec.hb4861_b[8] * 3d5
   endif else begin
     fwhm_bhb = 2.354 * spec.hb4861_b[2] * 3d5
   endelse
@@ -144,25 +150,48 @@ PRO plot_result, linefit_file, index_fit=index_fit, filename=filename, hb_func=h
   fitting_region = textoidl(strtrim(string(index_fit[0]), 2) + '-' + $
     strtrim(string(index_fit[1]), 2) + ' \AA')
   
-  fwhm_nhb = 2.354*spec.hb4861_n[2]*3d5
+  fwhm_nhb = 2.354 * spec.hb4861_n[2] * 3d5
   xpo = 0.2 & ypo = 0.85
   xyouts_size = 1.0
+  char_thick = 2.0
   xyouts, xpo, ypo+0.05, textoidl('Spectrum: ')+spec_type, color=fsc_color('black'), $
-    charsize=xyouts_size, /normal
+    charsize=xyouts_size, charthick=char_thick, /normal
   xyouts, xpo, ypo, textoidl('H\beta model: ')+hb_model, color=fsc_color('black'), $
-    charsize=xyouts_size, /normal
+    charsize=xyouts_size, charthick=char_thick, /normal
   xyouts, xpo, ypo-0.05, 'Reduced Chisq: '+string(spec.reduced_chisq, format='(F4.2)'), $
-    charsize=xyouts_size, /normal 
-  xyouts, xpo, ypo-0.1, 'Fitting Region: '+fitting_region, charsize=xyouts_size, /normal 
-  xyouts, xpo, ypo-0.15, textoidl('FWHM(H\beta_N): '+string(fwhm_nhb,format='(I4)') + ' km/s'), $ 
-  	charsize=xyouts_size, /normal
+    charsize=xyouts_size, charthick=char_thick, /normal 
+  xyouts, xpo, ypo-0.1, 'Fitting Region: '+fitting_region, charsize=xyouts_size, $
+    charthick=char_thick, /normal
+
+  if keyword_set(nlfixed) then begin
+    xyouts, xpo, ypo-0.15, textoidl('FWHM(H\beta_N): '+string(fwhm_nhb,format='(I4)') + ' km/s (fixed)'), $ 
+  	  charthick=char_thick, charsize=xyouts_size, /normal
+  endif else begin
+    xyouts, xpo, ypo-0.15, textoidl('FWHM(H\beta_N): '+string(fwhm_nhb,format='(I4)') + ' km/s'), $ 
+  	  charthick=char_thick, charsize=xyouts_size, /normal
+  endelse
+
   xyouts, xpo, ypo-0.2, textoidl('FWHM(H\beta_B): '+string(fwhm_bhb,format='(I4)') + ' km/s'), $ 
-  	charsize=xyouts_size, /normal
-  
+  	charthick=char_thick, charsize=xyouts_size, /normal
+
+  if spec.hb4861_b[10] gt 0 then begin 
+
+    if keyword_set(blfixed) then begin
+      xyouts, xpo, ypo-0.25, textoidl('FWHM(H\beta_{B1}): '+string(fwhm_bhb1,format='(I4)') + ' km/s (fixed)'), $ 
+  	    charthick=char_thick, charsize=xyouts_size, /normal
+	endif else begin
+      xyouts, xpo, ypo-0.25, textoidl('FWHM(H\beta_{B1}): '+string(fwhm_bhb1,format='(I4)') + ' km/s'), $ 
+  	    charthick=char_thick, charsize=xyouts_size, /normal
+	endelse
+
+    xyouts, xpo, ypo-0.3, textoidl('FWHM(H\beta_{B2}): '+string(fwhm_bhb2,format='(I4)') + ' km/s'), $ 
+  	  charthick=char_thick, charsize=xyouts_size, /normal
+  endif
+
   y_title = textoidl('\Delta \chi^2')
   yrange = [-2, 34]
   plot, spec.model_x, spec.chisq, color=fsc_color('black'), linestyle=1, thick=2.0,$
-    xtitle=x_title, ytitle=y_title,xr=x_range,xs=1,xthick=2.0, ythick=2.0,position=p2,$
+    xtitle=x_title, ytitle=y_title, xr=x_range, xs=1, xthick=2.0, ythick=2.0, position=p2,$
     yrange=yrange, ys=1, charthick=1.8
   oplot, spec.model_x, spec.model_x*0., linestyle=2, thick=3.0
   

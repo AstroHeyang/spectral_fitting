@@ -107,7 +107,7 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
   n_pixel = n_elements(wave)
   
   if not keyword_set(index_fit) then begin
-    index_fit = [4750, 5250]
+    index_fit = [4750, 5045]
   endif
   
   if not keyword_set(hb_func) then begin
@@ -188,7 +188,7 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
   ; broad Hbeta
   info_P[index_bhb1].value = alog(4872.68)
   info_P[index_bhb1].limited = [1, 1] 
-  info_P[index_bhb1].limits = [alog(4832.), alog(4992.)]
+  info_P[index_bhb1].limits = [alog(4832.), alog(4892.)]
   
   if keyword_set(blfixed) then begin
     info_P[index_bhb1+1].value = blfixed/(2.354*3D5)
@@ -198,15 +198,15 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
     info_P[index_bhb1+1].limited = [1, 1] 
     info_P[index_bhb1+1].limits = [0,3000]/(3D+5*2.354)
   endelse
-  info_P[index_bhb1+2].value = 100./info_P[index_hb].value
+  info_P[index_bhb1+2].value = 100./info_P[index_bhb1].value
   info_P[index_bhb1+2].limited = [1, 0] 
   info_P[index_bhb1+2].limits = [0, 0]
   index_bhb2 = index_bhb1 + 3
   
   if hb_func eq '3g' then begin
-    info_P[index_bhb2].value = alog(4862.68)
+    info_P[index_bhb2].value = alog(4882.68)
     info_P[index_bhb2].limited = [1, 1] 
-    info_P[index_bhb2].limits = [alog(4832.), alog(4922.)]
+    info_P[index_bhb2].limits = [alog(4872.), alog(4902.)]
     info_P[index_bhb2+1].value = 2000./(3D+5*2.354)
     info_P[index_bhb2+1].limited = [1, 1] 
     info_P[index_bhb2+1].limits = [800, 7000]/(3D+5*2.354)
@@ -290,8 +290,7 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
   print, bestnorm, dof, bestnorm/dof
   print, 'Chisq calculated manually:'
   chisq = (yfit - fit_y)^2/(fit_error^2)
-  n_dofs = n_elements(fit_y) -  (2+6+3-1)
-  print, total(chisq), n_dofs, total(chisq)/n_dofs
+  print, total(chisq), total(chisq)/dof
   
   ;output
   out_str = {					$
@@ -314,7 +313,7 @@ PRO spec_fit, index_fit, hb_func = hb_func, o3_func = o3_func, outfile=outfile,$
   
   output = replicate(out_str, 1)
   output.chisq = chisq
-  output.reduced_chisq = total(chisq)/n_dofs
+  output.reduced_chisq = total(chisq)/dof
   
   output.pl[0] = params[index_pl]
   output.pl[1] = perror[index_pl]
